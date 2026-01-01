@@ -2,11 +2,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <Copyright>Copyright © HoLLy</Copyright>
-    <TargetFrameworks>net472;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net481;net9.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
-    <PackageReference Include="dnlib" Version="3.3.2" />
-    <PackageReference Include="Lib.Harmony" Version="2.0.2" />
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+    <PackageReference Include="dnlib" Version="4.5.0" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
   </ItemGroup>
 </Project>
