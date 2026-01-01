@@ -29,7 +29,7 @@ namespace EazFixer
 
             public static void Postfix(ref MethodBase __result)
             {
-                if (__result.DeclaringType == typeof(RuntimeMethodHandle))
+                if (__result.DeclaringType?.FullName == "System.RuntimeMethodHandle")
                 {
                     //just replace it with a method
                     __result = MethodToReplace ?? MethodBase.GetCurrentMethod();

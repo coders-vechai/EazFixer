@@ -32,7 +32,7 @@ namespace EazFixer.Processors
                                 ?? throw new Exception("Could not find EnumerateEmbeddedAssemblies's MoveNext");
 
             //find the decryption methods
-            var dec1 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecryptionMethod1)
+            var dec1 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecryptionMethod)
                                 ?? throw new Exception("Could not find decryption method");
             _decrypter = Utils.FindMethod(Ctx.Assembly, dec1, new[] {typeof(byte[])}) 
                 ?? throw new Exception("Couldn't find decrypter through reflection");
@@ -53,7 +53,9 @@ namespace EazFixer.Processors
             if (!Ctx.Get<StringFixer>().Processed) throw new Exception("StringFixer is required!");
             var str = _moveNext.Body.Instructions.SingleOrDefault(a => a.OpCode.Code == Code.Ldstr)?.Operand as string
                       ?? throw new Exception("Could not find assembly list");
-            _assemblies = EnumerateEmbeddedAssemblies(str).Where(a => !a.Fullname.StartsWith("#A,A,")).ToList();    //TODO: investigate prefix
+            
+            // AssemblyNames that start with `#A,A,` seem to be copies but with a version attached
+            _assemblies = EnumerateEmbeddedAssemblies(str).Where(a => !a.Fullname.StartsWith("#A,A,")).ToList();
 
             //get the resource resolver and figure out which assemblies we shouldn't extract
             var res = Ctx.Get<ResourceResolver>();
@@ -66,8 +68,11 @@ namespace EazFixer.Processors
                 //get the resource containing the assembly
                 string resName = assembly.ResourceName;
                 var stream = Ctx.Assembly.GetManifestResourceStream(resName);    //not sure if reflection is the best way
+
+                var read = 0;
                 byte[] buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, (int)stream.Length);
+                while (read < buffer.Length)
+                    read += stream.Read(buffer, read, (int)stream.Length);
 
                 //if the assembly is encrypted: decrypt it
                 if (assembly.Encrypted) {
@@ -76,7 +81,9 @@ namespace EazFixer.Processors
                 //if the assembly is prefixed: remove it
                 if (assembly.Compressed) {
                     if (_decompressor == null) throw new Exception("Assembly is compressed, but couldn't find decompressor method");
-                    _decompressor.Invoke(null, new object[] {buffer});
+                    var resp = _decompressor.Invoke(null, new object[] {buffer});
+                    if (resp is byte[] b)
+                        buffer = b;
                 }
 
                 File.WriteAllBytes(Path.Combine(path, assembly.Filename), buffer);
@@ -126,14 +133,16 @@ namespace EazFixer.Processors
         private bool CanBeEnumerable(TypeDef t) => t.HasInterfaces && t.Interfaces.Any(a => a.Interface.Name == "IEnumerable");
         private bool CanBeMoveNext(MethodDef m) => m.Overrides.Any(a => a.MethodDeclaration.FullName == "System.Boolean System.Collections.IEnumerator::MoveNext()");
 
-        private bool CanBeDecryptionMethod1(MethodDef m) => m.MethodSig.ToString() == "System.Byte[] (System.Byte[])" && m.IsNoInlining;
+        private bool CanBeDecryptionMethod(MethodDef m) => m.MethodSig.ToString() == "System.Byte[] (System.Byte[])" && m.IsNoInlining;
         private bool CanBeDecompressionMethod(MethodDef m) => m.MethodSig.ToString() == "System.Byte[] (System.Byte[])" && !m.IsNoInlining;
 
         private static IEnumerable<EmbeddedAssemblyInfo> EnumerateEmbeddedAssemblies(string text)
         {
             var split = text.Split(',');
 
-            for (int i = 0; i < split.Length; i += 4)
+            // newer versions of eaz have an extra entry at the start, so skip that
+            var firstIndex = split.Length % 4;
+            for (int i = firstIndex; i < split.Length; i += 4)
             {
                 string b64 = split[i];
                 string resName = split[i + 1];
@@ -149,6 +158,7 @@ namespace EazFixer.Processors
                     asm.Encrypted = flags.IndexOf('a') != -1;
                     asm.Compressed = flags.IndexOf('b') != -1;
                     asm.MustLoadfromDisk = flags.IndexOf('c') != -1;
+                    asm.AlternateDirectory = flags.IndexOf('f') != -1;
                 }
                 asm.ResourceName = resName;
                 asm.FilenameBase64 = split[i + 2];
@@ -181,6 +191,7 @@ namespace EazFixer.Processors
             public bool Encrypted;
             public bool Compressed;
             public bool MustLoadfromDisk;
+            public bool AlternateDirectory;
             public string FilenameBase64;
             private string _fullname;
             private string _filename;
