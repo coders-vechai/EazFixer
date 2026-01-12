@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using CommandLine;
+using dnlib.DotNet;
+using dnlib.DotNet.Writer;
 using EazFixer.Processors;
 
 namespace EazFixer
@@ -19,7 +21,7 @@ namespace EazFixer
 
                 //order is important! AssemblyResolver has to be after StringFixer and ResourceResolver
                 var ctx = new EazContext(!string.IsNullOrEmpty(Flags.InFile) ? Flags.InFile : throw new Exception("Filepath not defined!"), 
-                    new ProcessorBase[] {new StringFixer(), new ResourceResolver(), new AssemblyResolver()});
+                    new ProcessorBase[] {new StringFixer(), new ResourceResolver(), new Processors.AssemblyResolver()});
 
                 Console.WriteLine("Executing memory patches...");
                 StacktracePatcher.Patch();
@@ -61,7 +63,7 @@ namespace EazFixer
                 Console.WriteLine();
 
                 Console.WriteLine("Writing new assembly...");
-                ctx.Module.Write(Flags.OutFile);
+                ctx.Module.Write(Flags.OutFile, new ModuleWriterOptions(ctx.Module) { MetadataOptions= new MetadataOptions(Flags.PreserveAll ? MetadataFlags.PreserveAll : 0) });
 
 #if DEBUG
                 return Exit("DONE", true);
@@ -93,6 +95,15 @@ namespace EazFixer
             Flags.InFile = args.InFile;
             Flags.KeepTypes = args.KeepTypes;
             Flags.VirtFix = args.VirtFix;
+            Flags.PreserveAll = args.PreserveAll;
+            Flags.StrDecTok = new MDToken(Convert.ToUInt32(args.StrDecTok, 16));
+            Flags.ResResolverTok = new MDToken(Convert.ToUInt32(args.ResResolverTok, 16));
+            Flags.ResInitTok = new MDToken(Convert.ToUInt32(args.ResInitTok, 16));
+            Flags.AsmResDecompressTok = new MDToken(Convert.ToUInt32(args.AsmResDecompressTok, 16));
+            Flags.AsmResDecryptTok = new MDToken(Convert.ToUInt32(args.AsmResDecryptTok, 16));
+            Flags.AsmResTypeTok = new MDToken(Convert.ToUInt32(args.AsmResTypeTok, 16));
+            Flags.AsmResMoveNextTok = new MDToken(Convert.ToUInt32(args.AsmResMoveNextTok, 16));
+            Flags.IgnoreTokVerification = args.IgnoreTokVerification;
 
             if (args.OutFile != default)
             {

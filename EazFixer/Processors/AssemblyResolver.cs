@@ -22,25 +22,73 @@ namespace EazFixer.Processors
         {
             //try to find the embedded assemblies string, which is located in 
             //the iterator in the EnumerateEmbeddedAssemblies function
-            _assemblyResolver = Ctx.Module.Types.SingleOrDefault(CanBeAssemblyResolver)
-                                ?? throw new Exception("Could not find resolver type");
-            var extractionApi = _assemblyResolver.NestedTypes.SingleOrDefault(CanBeExtractionApi)
-                                ?? throw new Exception("Could not find assembly extraction helper");
-            var enumerable = extractionApi.NestedTypes.SingleOrDefault(CanBeEnumerable)
-                                ?? throw new Exception("Could not find EnumerateEmbeddedAssemblies iterator");
-            _moveNext = enumerable.Methods.SingleOrDefault(CanBeMoveNext)
-                                ?? throw new Exception("Could not find EnumerateEmbeddedAssemblies's MoveNext");
+            if (!Flags.AsmResTypeTok.IsNull)
+            {
+                _assemblyResolver = Ctx.Module.ResolveToken(Flags.AsmResTypeTok) as TypeDef;
+                if (_assemblyResolver == null)
+                    throw new Exception("AssemblyResolver token set but type not found");
+                
+                if (!Flags.IgnoreTokVerification && !CanBeAssemblyResolver(_assemblyResolver))
+                    throw new Exception("AssemblyResolver found but is not a valid decrypter (Use --ignore-tok-verification to bypass this check)");
+            }
+            else
+                _assemblyResolver = Ctx.Module.Types.SingleOrDefault(CanBeAssemblyResolver)
+                                    ?? throw new Exception("Could not find resolver type");
+            
+            if (!Flags.AsmResMoveNextTok.IsNull)
+            {
+                _moveNext = Ctx.Module.ResolveToken(Flags.AsmResMoveNextTok) as MethodDef;
+                if (_moveNext == null)
+                    throw new Exception("MoveNext token set but type not found");
+                
+                if (!Flags.IgnoreTokVerification && !CanBeAssemblyResolver(_assemblyResolver))
+                    throw new Exception("MoveNext found but is not a valid decrypter (Use --ignore-tok-verification to bypass this check)");
+            }
+            else
+            {
+                var extractionApi = _assemblyResolver.NestedTypes.SingleOrDefault(CanBeExtractionApi)
+                                    ?? throw new Exception("Could not find assembly extraction helper");
+                var enumerable = extractionApi.NestedTypes.SingleOrDefault(CanBeEnumerable)
+                                 ?? throw new Exception("Could not find EnumerateEmbeddedAssemblies iterator");
+                _moveNext = enumerable.Methods.SingleOrDefault(CanBeMoveNext)
+                            ?? throw new Exception("Could not find EnumerateEmbeddedAssemblies's MoveNext");  
+            }
 
             //find the decryption methods
-            var dec1 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecryptionMethod)
-                                ?? throw new Exception("Could not find decryption method");
-            _decrypter = Utils.FindMethod(Ctx.Assembly, dec1, new[] {typeof(byte[])}) 
-                ?? throw new Exception("Couldn't find decrypter through reflection");
 
-            var dec2 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecompressionMethod);       //this one may be null
+            MethodDef dec1;
+            if (!Flags.AsmResDecryptTok.IsNull)
+            {
+                dec1 = Ctx.Module.ResolveToken(Flags.AsmResDecryptTok) as MethodDef;
+                if (dec1 == null)
+                    throw new Exception("Decrypter token set but method not found");
+
+                if (!Flags.IgnoreTokVerification && !CanBeDecryptionMethod(dec1))
+                    throw new Exception("Decrypter found but is not a valid assembly decrypter (Use --ignore-tok-verification to bypass this check)");
+            }
+            else
+                dec1 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecryptionMethod)
+                       ?? throw new Exception("Could not find decryption method");
+
+            _decrypter = Utils.FindMethod(Ctx.Assembly, dec1, new[] { typeof(byte[]) })
+                         ?? throw new Exception("Couldn't find decrypter through reflection");
+
+            MethodDef dec2;
+            if (!Flags.AsmResDecompressTok.IsNull)
+            {
+                dec2 = Ctx.Module.ResolveToken(Flags.AsmResDecompressTok) as MethodDef; //this one may be null
+                if (dec2 == null)
+                    throw new Exception("Decompressor token set but method not found");
+
+                if (!Flags.IgnoreTokVerification && !CanBeDecompressionMethod(dec2))
+                    throw new Exception("Decompressor found but is not a valid assembly decompressor (Use --ignore-tok-verification to bypass this check)");
+            }
+            else
+                dec2 = _assemblyResolver.Methods.SingleOrDefault(CanBeDecompressionMethod);
+
             if (dec2 != null)
                 _decompressor = Utils.FindMethod(Ctx.Assembly, dec2, new[] {typeof(byte[])})
-                                 ?? throw new Exception("Couldn't find prefix remover through reflection");
+                                ?? throw new Exception("Couldn't find prefix remover through reflection");
         }
 
         protected override void ProcessInternal()

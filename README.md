@@ -28,15 +28,33 @@ EazFixer is a deobfuscation tool for [Eazfuscator](https://www.gapotchenko.com/e
 Call from the command line or drag and drop the file on and let it run or use the command line flag `--file`.
 
 If your assembly is protected with control-flow obfuscation, run it through [de4dot](https://github.com/0xd4d/de4dot) with the
-`--only-cflow-deob` flag first.
+`--only-cflow-deob` flag first. This could break the AssemblyResolver processor's method detection, so you may need to use `--asmres-tok 0x<token>`
 
 * --file path
 * --keep-types
 * --virt-fix
+* --preserve-all
+* --str-decrypt-tok
+* --res-resolver-tok
+* --res-init-tok
+* --asmres-type-tok
+* --asmres-movenext-tok
+* --asmres-decrypt-tok
+* --asmres-decompress-tok
+* --ignore-tok-verification
 
 The flag `--file` is used for the input file.
 The flag `--keep-types` is similar to the de4dot flag, Keeps obfuscator types and assemblies.
 The flag `--virt-fix` keeps certain parts obfuscated to stay working with [virtualized](https://help.gapotchenko.com/eazfuscator.net/30/virtualization) assemblies.
+The flag `--preserve-all` preserves all metadata.
+The flag `--str-decrypt-tok` is used to manually specify the string decryption method token manually.
+The flag `--res-resolver-tok` is used to manually specify the resource resolver type token manually.
+The flag `--res-init-tok` is used to manually specify the resource initialization method token manually.
+The flag `--asmres-type-tok` is used to manually specify the assembly resolver type token.
+The flag `--asmres-movenext-tok` is used to manually specify the assembly resolver MoveNext method token.
+The flag `--asmres-decompress-tok` is used to manually specify the assembly resource decompression method token.
+The flag `--asmres-decrypt-tok` is used to manually specify the assembly resource decryption method token.
+The flag `--ignore-tok-verification` ignores the method verification of explicitly set tokens in the above flags. (Ensure your method tokens are correct!)
 
 example: `EazFixer.exe --file test.exe --keep-types`
 

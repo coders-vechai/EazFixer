@@ -11,7 +11,7 @@ namespace EazFixer
             return Utils.GetMethodsRecursive(module).SingleOrDefault(CanBeStringMethod);
         }
 
-        private static bool CanBeStringMethod(MethodDef method)
+        public static bool CanBeStringMethod(MethodDef method)
         {
             //internal and static
             if (!method.IsStatic || !method.IsAssembly)
