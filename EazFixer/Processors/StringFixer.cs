@@ -13,7 +13,11 @@ namespace EazFixer.Processors
         protected override void InitializeInternal()
         {
             //find method
-            _decrypterMethod = StringFixUtils.FindStringDecryptMethod(Ctx.Module) ??
+            if (!Flags.StrDecTok.IsNull)
+                _decrypterMethod = Ctx.Module.ResolveToken(Flags.StrDecTok) as MethodDef
+                                    ?? throw new Exception("StringDecrypter token set but method not found");
+            else
+                _decrypterMethod = StringFixUtils.FindStringDecryptMethod(Ctx.Module) ??
                                throw new Exception("Could not find decrypter method");
         }
 
