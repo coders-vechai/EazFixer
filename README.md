@@ -28,31 +28,32 @@ EazFixer is a deobfuscation tool for [Eazfuscator](https://www.gapotchenko.com/e
 Call from the command line or drag and drop the file on and let it run or use the command line flag `--file`.
 
 If your assembly is protected with control-flow obfuscation, run it through [de4dot](https://github.com/0xd4d/de4dot) with the
-`--only-cflow-deob` flag first. This could break the AssemblyResolver processor's method detection, so you may need to use `--asmres-tok 0x<token>`
+`--only-cflow-deob` flag first. This could break the AssemblyResolver processor's method detection, so you may need to manually find the AssemblyResolver tokens and use the `--asmres-decrypt-tok` and `--asmres-decompress-tok` flags.
 
 * --file path
+    * input file
 * --keep-types
+    * similar to the de4dot flag, keeps obfuscator types and assemblies
 * --virt-fix
+    * keeps certain parts obfuscated to stay working with [virtualized](https://help.gapotchenko.com/eazfuscator.net/30/virtualization) assemblies.
 * --preserve-all
-* --str-decrypt-tok
-* --res-resolver-tok
-* --res-init-tok
-* --asmres-type-tok
-* --asmres-movenext-tok
-* --asmres-decrypt-tok
-* --asmres-decompress-tok
+    * preserves all metadata
 
-The flag `--file` is used for the input file.
-The flag `--keep-types` is similar to the de4dot flag, Keeps obfuscator types and assemblies.
-The flag `--virt-fix` keeps certain parts obfuscated to stay working with [virtualized](https://help.gapotchenko.com/eazfuscator.net/30/virtualization) assemblies.
-The flag `--preserve-all` preserves all metadata.
-The flag `--str-decrypt-tok` is used to manually specify the string decryption method token manually.
-The flag `--res-resolver-tok` is used to manually specify the resource resolver type token manually.
-The flag `--res-init-tok` is used to manually specify the resource initialization method token manually.
-The flag `--asmres-type-tok` is used to manually specify the assembly resolver type token.
-The flag `--asmres-movenext-tok` is used to manually specify the assembly resolver MoveNext method token.
-The flag `--asmres-decompress-tok` is used to manually specify the assembly resource decompression method token.
-The flag `--asmres-decrypt-tok` is used to manually specify the assembly resource decryption method token.
+The following flags are for manually specifying metadata tokens in the case EazFixer fails to find them. They accept the token in hex format. e.g. `--str-decrypt-tok 0x060002B7`
+* --str-decrypt-tok
+    * string decryption method
+* --res-resolver-tok
+    * resource resolver type
+* --res-init-tok
+    * resource initialization method
+* --asmres-type-tok
+    * assembly resolver type
+* --asmres-movenext-tok
+    * assembly resolver's MoveNext implementation method token
+* --asmres-decrypt-tok
+    * assembly resolver's decryption method
+* --asmres-decompress-tok
+    * assembly resolver's decompression method
 
 example: `EazFixer.exe --file test.exe --keep-types`
 
@@ -60,11 +61,11 @@ example: `EazFixer.exe --file test.exe --keep-types`
 Clone the repository and use the latest version of Visual Studio (2019, at the time of writing).
 
 ## Support
-EazFixer is (and will always be) targeted at the latest version of Eazfuscator. If your version is not supported, try a more universal 
-deobfuscator like [de4dot](https://github.com/0xd4d/de4dot). If your version is newer than what this tool supports, create an issue only 
+EazFixer is (and will always be) targeted at the latest version of Eazfuscator. If your version is not supported, try a more universal
+deobfuscator like [de4dot](https://github.com/0xd4d/de4dot). If your version is newer than what this tool supports, create an issue only
 **after** verifying with the latest version of Eazfuscator.
 
-Also, I will not help you use this program. Consider it for advanced users only. If you do run into a problem and are sure it is a bug, 
+Also, I will not help you use this program. Consider it for advanced users only. If you do run into a problem and are sure it is a bug,
 feel free to submit an issue but I cannot guarantee I will fix it.
 
 ## Related projects
