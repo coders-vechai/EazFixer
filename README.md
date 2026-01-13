@@ -41,7 +41,6 @@ If your assembly is protected with control-flow obfuscation, run it through [de4
 * --asmres-movenext-tok
 * --asmres-decrypt-tok
 * --asmres-decompress-tok
-* --ignore-tok-verification
 
 The flag `--file` is used for the input file.
 The flag `--keep-types` is similar to the de4dot flag, Keeps obfuscator types and assemblies.
@@ -54,7 +53,6 @@ The flag `--asmres-type-tok` is used to manually specify the assembly resolver t
 The flag `--asmres-movenext-tok` is used to manually specify the assembly resolver MoveNext method token.
 The flag `--asmres-decompress-tok` is used to manually specify the assembly resource decompression method token.
 The flag `--asmres-decrypt-tok` is used to manually specify the assembly resource decryption method token.
-The flag `--ignore-tok-verification` ignores the method verification of explicitly set tokens in the above flags. (Ensure your method tokens are correct!)
 
 example: `EazFixer.exe --file test.exe --keep-types`
 

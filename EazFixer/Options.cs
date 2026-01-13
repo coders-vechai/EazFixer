@@ -41,9 +41,5 @@ namespace EazFixer
         
         [Option("asmres-decrypt-tok", Default = "0", HelpText = "Manually specify assembly decryptor method token for if detection fails (Format: 0x<token>) ")]
         public string AsmResDecryptTok { get; set; }
-        
-        [Option("ignore-tok-verification", HelpText = "Ignore the verification of manually set tokens. (Ensure your tokens are correct!)")]
-        public bool IgnoreTokVerification { get; set; }
-
     }
 }

@@ -17,7 +17,5 @@ namespace EazFixer {
         public static MDToken AsmResMoveNextTok;
         public static MDToken AsmResDecompressTok;
         public static MDToken AsmResDecryptTok;
-        
-        public static bool    IgnoreTokVerification;
     }
 }

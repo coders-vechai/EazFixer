@@ -103,8 +103,7 @@ namespace EazFixer
             Flags.AsmResDecryptTok = new MDToken(Convert.ToUInt32(args.AsmResDecryptTok, 16));
             Flags.AsmResTypeTok = new MDToken(Convert.ToUInt32(args.AsmResTypeTok, 16));
             Flags.AsmResMoveNextTok = new MDToken(Convert.ToUInt32(args.AsmResMoveNextTok, 16));
-            Flags.IgnoreTokVerification = args.IgnoreTokVerification;
-
+            
             if (args.OutFile != default)
             {
                 Flags.OutFile = args.OutFile;
